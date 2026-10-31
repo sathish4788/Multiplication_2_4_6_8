@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Table Magic Studio - Standalone</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #1e293b;
+      --accent-pink: #ec4899;
+      --accent-orange: #f97316;
+      --accent-green: #10b981;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --accent-gold: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+    header {
+      background: #0f172a;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #334155;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .badge {
+      background: rgba(6,182,212,0.2);
+      border: 1px solid #06b6d4;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 13px;
+      color: #67e8f9;
+    }
+    .btn {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn:active { transform: scale(0.96); }
+    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+    .table-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 16px 0; }
+    .table-card {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 20px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .table-card.active { border-color: #06b6d4; background: #0c4a6e; transform: scale(1.04); }
+    .cycle-strip { display: flex; justify-content: center; gap: 6px; margin-top: 8px; }
+    .cycle-dot { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: white; }
+    .mascot-box {
+      background: #082f49;
+      border: 2px solid #0284c7;
+      border-radius: 24px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .mode-btn {
+      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 18px;
+      font-weight: 900;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 6px 0;
+      width: 100%;
+      text-align: left;
+    }
+    .reef-area {
+      background: linear-gradient(180deg, #38bdf8 0%, #1e40af 100%);
+      border: 3px solid #38bdf8;
+      border-radius: 24px;
+      height: 280px;
+      position: relative;
+      overflow: hidden;
+      margin: 16px 0;
+      cursor: crosshair;
+    }
+    .fish-chip {
+      position: absolute;
+      background: rgba(15,23,42,0.9);
+      color: white;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-weight: 900;
+      border: 2px solid white;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:24px;">🎣</span>
+      <strong style="color:#fde047; font-size:18px;">Table Magic: Fish Net Catch</strong>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <span class="badge" id="catchesCount">🐠 0 Caught</span>
+      <button class="btn" onclick="window.location.href='/'">Open Full App</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="mascot-box">
+      <div style="font-size:42px;">🖌️</div>
+      <div>
+        <h4 style="color:#bae6fd; margin-bottom:4px;">Barnaby Brush says:</h4>
+        <p id="mascotText" style="font-size:14px; color:#e0f2fe;">
+          Catch the multiples of 2 in your net! They always end in 2, 4, 6, 8, or 0!
+        </p>
+      </div>
+    </div>
+
+    <h3 style="color:#fde047; margin-bottom:10px;">Select Table to Fish:</h3>
+    <div class="table-grid" id="tablesContainer"></div>
+
+    <div style="background:#1e293b; padding:20px; border-radius:24px; border:2px solid #475569;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="color:#fde047;" id="currentTableTitle">Table ×2 Net Catch</h3>
+        <span style="color:#94a3b8; font-size:13px;" id="tensPatternText">Ends in: 2, 4, 6, 8, 0</span>
+      </div>
+
+      <!-- Mini Reef Net Catch Sandbox -->
+      <div class="reef-area" id="reefBox"></div>
+
+      <button class="mode-btn" onclick="playChant()">🎤 Sing the Pattern Chant</button>
+      <button class="mode-btn" style="background:linear-gradient(135deg, #ec4899, #f97316);" onclick="window.location.href='/'">
+        🚀 Launch Full Pixar Applet (All Modes)
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const TABLES = {
+      2: { cycle: [2,4,6,8,0], chant: "Two, four, six, eight, zero... then a ONE in front, the same again!", tens: "00000, 11111, 22" },
+      4: { cycle: [4,8,2,6,0], chant: "Four, eight, two, six, zero! Tens go double, double, triple!", tens: "00, 11, 222, 33, 444" },
+      6: { cycle: [6,2,8,4,0], chant: "Six, two, eight, four, zero! Round and round we go!", tens: "0, 11, 2, 33, 44, 5, 66, 7" },
+      5: { cycle: [5,0], chant: "Five, zero, five, zero, easy peasy!", tens: "0, 11, 22, 33, 44, 55, 6" }
+    };
+    const COLORS = { 2:'#ec4899', 4:'#f97316', 6:'#10b981', 8:'#06b6d4', 0:'#8b5cf6', 5:'#f59e0b' };
+    let currentTable = 2;
+    let caughtCount = 0;
+
+    function renderTables() {
+      const container = document.getElementById('tablesContainer');
+      container.innerHTML = '';
+      [2, 4, 6, 5].forEach(num => {
+        const div = document.createElement('div');
+        div.className = 'table-card ' + (currentTable === num ? 'active' : '');
+        div.onclick = () => selectTbl(num);
+        const cycleHtml = TABLES[num].cycle.map(d => `<span class="cycle-dot" style="background:${COLORS[d]}">${d}</span>`).join('');
+        div.innerHTML = `<h2 style="font-size:32px; font-weight:900;">×${num}</h2><div class="cycle-strip">${cycleHtml}</div>`;
+        container.appendChild(div);
+      });
+    }
+
+    function selectTbl(num) {
+      currentTable = num;
+      renderTables();
+      document.getElementById('currentTableTitle').innerText = `Table ×${num} Net Catch`;
+      document.getElementById('tensPatternText').innerText = `Cycle: ${TABLES[num].cycle.join(', ')}`;
+      document.getElementById('mascotText').innerText = `Tap to catch fish with Table ×${num} values! Chant: "${TABLES[num].chant}"`;
+      spawnFish();
+    }
+
+    function spawnFish() {
+      const reef = document.getElementById('reefBox');
+      reef.innerHTML = '';
+      for (let i = 0; i < 7; i++) {
+        const isTarget = i % 2 === 0;
+        const val = isTarget ? currentTable * ((i * 2 + 2) % 12 + 1) : currentTable * i + (i % 2 === 0 ? 1 : 3);
+        const chip = document.createElement('div');
+        chip.className = 'fish-chip';
+        chip.innerText = `🐟 ${val}`;
+        chip.style.left = (10 + (i * 12) % 75) + '%';
+        chip.style.top = (15 + (i * 35) % 65) + '%';
+        chip.onclick = (e) => {
+          e.stopPropagation();
+          if (val % currentTable === 0) {
+            caughtCount++;
+            document.getElementById('catchesCount').innerText = `🐠 ${caughtCount} Caught!`;
+            chip.style.background = '#10b981';
+            chip.innerText = `✨ ${val} Net!`;
+            setTimeout(() => chip.remove(), 400);
+          } else {
+            chip.style.background = '#f43f5e';
+            chip.innerText = `❌ ${val}`;
+            setTimeout(() => {
+              chip.style.background = 'rgba(15,23,42,0.9)';
+              chip.innerText = `🐟 ${val}`;
+            }, 600);
+          }
+        };
+        reef.appendChild(chip);
+      }
+    }
+
+    function playChant() {
+      const text = TABLES[currentTable].chant;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.9;
+        u.pitch = 1.15;
+        window.speechSynthesis.speak(u);
+      } else {
+        alert(text);
+      }
+    }
+
+    selectTbl(2);
+  </script>
+</body>
+</html>

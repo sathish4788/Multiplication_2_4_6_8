@@ -1,0 +1,6 @@
+{
+  "name": "Table Magic Studio",
+  "description": "A Pixar-style animated multiplication patterns game teaching tables 2, 4, 6 and 5 through rhythm, paint cycles, and home design.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
